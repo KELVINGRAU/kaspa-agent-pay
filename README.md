@@ -84,7 +84,7 @@ claude mcp add kaspa-agent-pay -- npx tsx src/server.ts
 If this is useful to you, donations keep development going:
 
 ```
-kaspa:YOUR_MAINNET_ADDRESS_HERE
+kaspa:qz2wevjcu0hndueku3q39f6x4wy97am4anycstne37gvhgu6q8hucaarazhuu
 ```
 
 ## License
