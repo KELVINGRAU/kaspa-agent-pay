@@ -78,6 +78,26 @@ claude mcp add kaspa-agent-pay -- npx tsx src/server.ts
 1. **Spending-limit session contract on Kasplex zkEVM** — an agent pre-authorizes a spend cap on-chain; a counterparty draws micropayments within it without per-call approval (MPP-style, but trustless).
 2. **Agent identity & reputation layer** — an address's on-chain payment history becomes publicly verifiable reputation between agents.
 3. **Protocol specification (KIP-style)** — formalize the invoice + dedicated-address flow as a standard to propose to the Kaspa community.
+ 
+ ## Related projects
+
+`kaspa-agent-pay` focuses specifically on **pay-per-call settlement between
+agents** (invoice with a dedicated address, matching the x402/AP2/MPP pattern
+from other chains, applied natively to Kaspa). A few other projects overlap
+with parts of this space, worth knowing about:
+
+- **[kasanova-io/kaspa-mcp](https://github.com/kasanova-io/kaspa-mcp)** — an
+  MCP server for Kaspa wallet operations (generate address, balance, send,
+  fee estimation). Focused on a human directing Claude to make a transfer,
+  not on autonomous agent-to-agent commerce or invoicing.
+- **[Kaskad](https://www.kaskad.app/agents)** — an MCP-native lending
+  protocol on Kaspa's Igra L2, letting AI agents supply/borrow assets
+  autonomously. A more mature project, but scoped to DeFi lending rather
+  than general pay-per-call settlement.
+
+If you're building something adjacent, contributions and integrations are
+welcome — open an issue or a PR.
+
 
 ## Support this project
 
