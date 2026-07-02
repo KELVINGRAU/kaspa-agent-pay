@@ -77,6 +77,8 @@ export async function sendPayment(
     outputs: [{ address: toAddress, amount: amountSompi }],
     changeAddress: spender.address,
     priorityFee: kaspaToSompi(String(priorityFeeKas)) ?? 0n,
+    // Required by the generator when `entries` is a plain array.
+    networkId: config.networkId,
   });
 
   let lastTxId = "";
