@@ -64,7 +64,7 @@ ou aponte para o build compilado (`npm run build && node dist/server.js`).
 - **Teto por transação.** `send_payment` recusa qualquer valor acima de `KASPA_MAX_SEND_KAS` (padrão 50 KAS), limitando o dano de um agente manipulado ou com bug.
 - **Chave privada nunca em disco automaticamente.** `setup-wallet` só imprime no terminal; você decide colar no `.env` (que já está no `.gitignore`).
 - **Confirmação é heurística.** `wait_for_confirmation` usa "saiu do mempool" como proxy de aceitação — válido dado o tempo de bloco sub-segundo do Kaspa, mas não é prova criptográfica. Para valores altos, cheque o conjunto de UTXOs do destinatário diretamente.
-- **`send_payment` não foi testado contra um nó ao vivo.** Este projeto foi desenvolvido em um sandbox sem um nó Kaspa alcançável nem carteira de testnet financiada, então o caminho `createTransaction` → `signTransaction` → `submitTransaction` em `src/kaspa-client.ts` segue as assinaturas documentadas no `kaspa_wasm.d.ts` instalado mas **não foi exercido de ponta a ponta**. Antes de usar em qualquer valor real: rode `npm run check-rpc`, depois `send_payment` com um valor pequeno em testnet-10 e confirme que a transação chega ao destino.
+- **Testado de ponta a ponta em testnet-10.** O fluxo completo (resolver → saldo → `createTransactions` → assinatura → submissão → confirmação) foi exercido contra a rede real em 02/07/2026: envio de 10 tKAS confirmado em ~1,5s com taxa de ~0,002 KAS ([tx no explorer](https://explorer-tn10.kaspa.org/txs/bd7557dd30e7e52f68bcce8ac90faa065f4524360ae53ab8354946450c2c9878)). Reproduza com `npm run demo -- send`. Antes de considerar mainnet, repita o teste você mesmo com valores pequenos.
 
 ## Roadmap (próximas peças do protocolo)
 
