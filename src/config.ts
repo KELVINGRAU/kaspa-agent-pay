@@ -17,9 +17,8 @@ if (networkId === "mainnet" && !allowMainnet) {
 
 export const config = {
   networkId,
-  // wRPC endpoint of a Kaspa node (your own `kaspad --utxoindex`, or a
-  // trusted public node) for the selected network. There is no bundled
-  // public resolver in this SDK build, so this must be set explicitly.
+  // Optional wRPC endpoint of a specific Kaspa node. When unset, the SDK's
+  // Resolver discovers a community-operated public node automatically.
   nodeUrl: process.env.KASPA_NODE_URL,
   privateKeyHex: process.env.KASPA_PRIVATE_KEY_HEX,
   maxSendKas: Number(process.env.KASPA_MAX_SEND_KAS ?? "50"),

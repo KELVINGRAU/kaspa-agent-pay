@@ -1,4 +1,4 @@
-import { Keypair, PrivateKey } from "kaspa-wasm";
+import { Keypair, PrivateKey } from "kaspa-wasm32-sdk";
 import { config } from "./config.js";
 
 export interface WalletKey {
@@ -25,7 +25,8 @@ function getMainKeypair(): Keypair {
 export function getMainWalletKey(): WalletKey {
   const keypair = getMainKeypair();
   return {
-    privateKey: keypair.privateKey,
+    // In this SDK build, Keypair.privateKey is a hex string.
+    privateKey: new PrivateKey(keypair.privateKey),
     address: keypair.toAddress(config.networkId).toString(),
   };
 }
@@ -35,7 +36,7 @@ export function getMainWalletKey(): WalletKey {
 export function generateInvoiceKey(): WalletKey {
   const keypair = Keypair.random();
   return {
-    privateKey: keypair.privateKey,
+    privateKey: new PrivateKey(keypair.privateKey),
     address: keypair.toAddress(config.networkId).toString(),
   };
 }

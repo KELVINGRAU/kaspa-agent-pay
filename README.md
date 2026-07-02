@@ -25,7 +25,7 @@ scripts/
   check-rpc.ts      # teste de conectividade contra a rede configurada
 ```
 
-Cada fatura (`create_invoice`) gera uma keypair nova e independente, então o pagamento é confirmado checando o UTXO desse endereço específico — não por coincidência de valor. O `kaspa-wasm` publicado no npm (0.13.0) não expõe derivação HD até `PrivateKey` nem um resolver de nós públicos embutido, então cada fatura é uma chave solta em memória (não persistida) em vez de um filho derivado de uma mnemônica, e você precisa apontar `KASPA_NODE_URL` para um nó explícito.
+Cada fatura (`create_invoice`) gera uma keypair nova e independente, então o pagamento é confirmado checando o UTXO desse endereço específico — não por coincidência de valor. As chaves de fatura vivem só em memória (não são persistidas). O projeto usa o `kaspa-wasm32-sdk` (0.15.x), que traz um `Resolver` com lista embutida de nós públicos comunitários — então `KASPA_NODE_URL` é opcional.
 
 ## Quick start
 
@@ -36,7 +36,7 @@ cp .env.example .env        # cole KASPA_PRIVATE_KEY_HEX e defina KASPA_NODE_URL
 npm run check-rpc           # valida conectividade com a rede antes de confiar em qualquer envio
 ```
 
-`KASPA_NODE_URL` precisa apontar para um nó Kaspa com wRPC habilitado (`kaspad --utxoindex --rpclisten-borsh=...`) na rede escolhida, ou um endpoint público de confiança. Financie o endereço impresso usando um faucet de testnet-10 antes de testar `send_payment`.
+Por padrão a conexão usa o `Resolver` do SDK (nós públicos comunitários) — não precisa configurar nada. Se preferir um nó específico (ex.: o seu próprio `kaspad --utxoindex --rpclisten-borsh=...`), defina `KASPA_NODE_URL`. Financie o endereço impresso usando um faucet de testnet-10 antes de testar `send_payment`.
 
 Registrar como servidor MCP (Claude Code / Claude Desktop):
 

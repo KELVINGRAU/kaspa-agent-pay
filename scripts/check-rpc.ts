@@ -1,19 +1,23 @@
 import "../src/ws-polyfill.js";
-import { RpcClient, Encoding } from "kaspa-wasm";
+import { RpcClient, Resolver, Encoding } from "kaspa-wasm32-sdk";
 
 const networkId = process.env.KASPA_NETWORK ?? "testnet-10";
 const nodeUrl = process.env.KASPA_NODE_URL;
 
-if (!nodeUrl) {
-  console.error(`KASPA_NODE_URL is not set. Point it at a Kaspa wRPC endpoint for ${networkId} and retry.`);
-  process.exit(1);
-}
+const rpc = new RpcClient({
+  ...(nodeUrl ? { url: nodeUrl } : { resolver: new Resolver() }),
+  encoding: Encoding.Borsh,
+  networkId,
+});
 
-const rpc = new RpcClient(nodeUrl, Encoding.Borsh, networkId);
-
-console.log(`Connecting to Kaspa ${networkId} at ${nodeUrl}...`);
-await rpc.connect({});
-const info = await rpc.getInfo();
-console.log("Connected. Node info:", info);
+console.log(
+  nodeUrl
+    ? `Connecting to Kaspa ${networkId} at ${nodeUrl}...`
+    : `Connecting to Kaspa ${networkId} via public resolver...`
+);
+await rpc.connect();
+const info = await rpc.getServerInfo();
+console.log("Connected to:", rpc.url);
+console.log("Server info:", info);
 await rpc.disconnect();
 console.log("RPC connectivity OK.");

@@ -1,16 +1,12 @@
 import "./ws-polyfill.js";
 import {
   RpcClient,
+  Resolver,
   Encoding,
-  Address,
-  PaymentOutput,
-  PaymentOutputs,
-  UtxoEntries,
-  createTransaction,
-  signTransaction,
+  createTransactions,
   kaspaToSompi,
   type UtxoEntryReference,
-} from "kaspa-wasm";
+} from "kaspa-wasm32-sdk";
 import { config } from "./config.js";
 import { getMainWalletKey } from "./wallet.js";
 
@@ -19,16 +15,16 @@ let connected = false;
 
 export async function getRpc(): Promise<RpcClient> {
   if (!rpc) {
-    if (!config.nodeUrl) {
-      throw new Error(
-        `KASPA_NODE_URL is not set. Point it at a Kaspa wRPC endpoint for ${config.networkId} ` +
-          "(your own `kaspad --utxoindex`, or a trusted public node)."
-      );
-    }
-    rpc = new RpcClient(config.nodeUrl, Encoding.Borsh, config.networkId);
+    rpc = new RpcClient({
+      // A explicit KASPA_NODE_URL wins; otherwise the Resolver picks a
+      // community-operated public node for the configured network.
+      ...(config.nodeUrl ? { url: config.nodeUrl } : { resolver: new Resolver() }),
+      encoding: Encoding.Borsh,
+      networkId: config.networkId,
+    });
   }
   if (!connected) {
-    await rpc.connect({});
+    await rpc.connect();
     connected = true;
   }
   return rpc;
@@ -43,20 +39,13 @@ export async function getBalanceSompi(address: string): Promise<bigint> {
 export async function getUtxoEntries(address: string): Promise<UtxoEntryReference[]> {
   const client = await getRpc();
   const resp = await client.getUtxosByAddresses({ addresses: [address] });
-  return resp.entries as UtxoEntryReference[];
+  return resp.entries;
 }
 
 export interface SendResult {
   txId: string;
 }
 
-// NOTE: this is the one code path in the project that could not be
-// exercised against a live node from the dev sandbox (no funded testnet
-// wallet, no reachable wRPC endpoint here). The call shapes below follow
-// kaspa-wasm's low-level createTransaction/signTransaction/submitTransaction
-// primitives as declared in kaspa_wasm.d.ts. Run `npm run check-rpc` for
-// connectivity, then send a small testnet-10 amount and confirm it lands
-// before trusting this with anything of value.
 export async function sendPayment(
   toAddress: string,
   amountKas: number,
@@ -69,6 +58,11 @@ export async function sendPayment(
     );
   }
 
+  const amountSompi = kaspaToSompi(String(amountKas));
+  if (amountSompi === undefined) {
+    throw new Error(`Invalid KAS amount: ${amountKas}`);
+  }
+
   const spender = getMainWalletKey();
   const entries = await getUtxoEntries(spender.address);
   if (entries.length === 0) {
@@ -77,22 +71,21 @@ export async function sendPayment(
     );
   }
 
-  const signable = createTransaction(
-    new UtxoEntries(entries),
-    new PaymentOutputs([new PaymentOutput(new Address(toAddress), kaspaToSompi(amountKas))]),
-    new Address(spender.address),
-    kaspaToSompi(priorityFeeKas),
-    [],
-    1,
-    1
-  );
-
-  const signed = signTransaction(signable, [spender.privateKey], true);
-
   const client = await getRpc();
-  await client.submitTransaction({ transaction: signed.tx, allowOrphan: false });
+  const { transactions } = await createTransactions({
+    entries,
+    outputs: [{ address: toAddress, amount: amountSompi }],
+    changeAddress: spender.address,
+    priorityFee: kaspaToSompi(String(priorityFeeKas)) ?? 0n,
+  });
 
-  return { txId: signed.tx.id };
+  let lastTxId = "";
+  for (const pending of transactions) {
+    pending.sign([spender.privateKey]);
+    lastTxId = await pending.submit(client);
+  }
+
+  return { txId: lastTxId };
 }
 
 export interface ConfirmationResult {
@@ -116,7 +109,7 @@ export async function waitForConfirmation(
 
   while (Date.now() < deadline) {
     const inMempool = await client
-      .getMempoolEntry({ transactionId: txId })
+      .getMempoolEntry({ transactionId: txId, includeOrphanPool: true, filterTransactionPool: false })
       .then(() => true)
       .catch(() => false);
 

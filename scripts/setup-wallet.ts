@@ -1,4 +1,4 @@
-import { Keypair } from "kaspa-wasm";
+import { Keypair } from "kaspa-wasm32-sdk";
 
 const networkId = process.env.KASPA_NETWORK ?? "testnet-10";
 

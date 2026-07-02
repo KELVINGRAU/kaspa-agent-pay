@@ -55,7 +55,7 @@ export async function checkInvoice(id: string): Promise<Invoice> {
 
   if (totalKas >= invoice.amountKas) {
     invoice.status = "paid";
-    invoice.paidTxIds = entries.map((entry) => entry.getTransactionId());
+    invoice.paidTxIds = entries.map((entry) => entry.outpoint.transactionId);
   }
 
   return invoice;
