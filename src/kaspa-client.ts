@@ -4,6 +4,7 @@ import {
   Resolver,
   Encoding,
   createTransactions,
+  estimateTransactions,
   kaspaToSompi,
   type UtxoEntryReference,
 } from "kaspa-wasm32-sdk";
@@ -72,13 +73,28 @@ export async function sendPayment(
   }
 
   const client = await getRpc();
-  const { transactions } = await createTransactions({
+  const baseSettings = {
     entries,
     outputs: [{ address: toAddress, amount: amountSompi }],
     changeAddress: spender.address,
-    priorityFee: kaspaToSompi(String(priorityFeeKas)) ?? 0n,
     // Required by the generator when `entries` is a plain array.
     networkId: config.networkId,
+  };
+
+  // The generator's built-in fee is 1 sompi/gram, but networks can enforce a
+  // higher minimum feerate (testnet-10 currently requires ~100 sompi/gram).
+  // Estimate the transaction mass (== base fee at 1 sompi/gram), ask the node
+  // for the current priority feerate, and add the difference as priority fee.
+  const massEstimate = await estimateTransactions({ ...baseSettings, priorityFee: 0n });
+  const mass = massEstimate.fees;
+  const { estimate: feeEstimate } = await client.getFeeEstimate({});
+  const feerate = BigInt(Math.max(1, Math.ceil(feeEstimate.priorityBucket.feerate)));
+  const networkPriorityFee = mass * feerate; // total fee = mass*(feerate+1) >= required
+  const userPriorityFee = kaspaToSompi(String(priorityFeeKas)) ?? 0n;
+
+  const { transactions } = await createTransactions({
+    ...baseSettings,
+    priorityFee: networkPriorityFee + userPriorityFee,
   });
 
   let lastTxId = "";
