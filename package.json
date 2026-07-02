@@ -12,6 +12,7 @@
     "start": "node dist/server.js",
     "dev": "tsx src/server.ts",
     "setup-wallet": "tsx scripts/setup-wallet.ts",
+    "demo": "tsx scripts/demo.ts",
     "check-rpc": "tsx scripts/check-rpc.ts"
   },
   "dependencies": {
