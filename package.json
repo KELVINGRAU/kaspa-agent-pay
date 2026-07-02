@@ -1,0 +1,28 @@
+{
+  "name": "kaspa-agent-pay",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MCP server that gives AI agents a native Kaspa (KAS) payment rail: wallet, send/receive, and invoice-based pay-per-call settlement.",
+  "type": "module",
+  "bin": {
+    "kaspa-agent-pay": "dist/server.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "tsx src/server.ts",
+    "setup-wallet": "tsx scripts/setup-wallet.ts",
+    "check-rpc": "tsx scripts/check-rpc.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "isomorphic-ws": "^5.0.0",
+    "kaspa-wasm": "^0.13.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.9",
+    "tsx": "^4.16.2",
+    "typescript": "^5.5.4"
+  }
+}
